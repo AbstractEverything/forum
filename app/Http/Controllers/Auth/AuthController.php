@@ -59,7 +59,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Create a new user instance after a valid registration.
+     * Create a new user instance after a valid registration then assign them a member role.
      *
      * @param  array  $data
      * @return User
