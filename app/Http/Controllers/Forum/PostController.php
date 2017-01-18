@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Forum;
 use App\Forum\Forums\Forum;
 use App\Forum\Posts\Post;
 use App\Forum\Posts\PostMover;
-use App\Forum\Queries\GetAllRepliesToPost;
+use App\Forum\Replies\Reply;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Http\Request;
@@ -25,6 +25,11 @@ class PostController extends Controller
     protected $post;
 
     /**
+     * @var App\Forum\Replies\Reply
+     */
+    protected $reply;
+
+    /**
      * @var Illuminate\Database\DatabaseManager
      */
     protected $db;
@@ -36,10 +41,11 @@ class PostController extends Controller
      * @param Reply           $reply
      * @param DatabaseManager $db
      */
-    public function __construct(Forum $forum, Post $post, DatabaseManager $db)
+    public function __construct(Forum $forum, Post $post, Reply $reply, DatabaseManager $db)
     {
         $this->forum = $forum;
         $this->post = $post;
+        $this->reply = $reply;
         $this->db = $db;
     }
 
@@ -108,10 +114,7 @@ class PostController extends Controller
 
         $forumDropdown = $this->forum->lists('name', 'id')->toArray();
         $pageNumber = $request->input('page');
-        $replies = App::make(GetAllRepliesToPost::class)->run(
-            $id,
-            config('pagination.replies')
-        );
+        $replies = $this->reply->repliesToPost($id)->paginate(config('pagination.replies'));
 
         $this->incrementViewCount($post);
 
@@ -160,6 +163,8 @@ class PostController extends Controller
                 'body' => $request->input('body'),
             ]);
         });
+
+        Cache::forget('forums.all');
 
         flash()->success('Post updated successfully');
 

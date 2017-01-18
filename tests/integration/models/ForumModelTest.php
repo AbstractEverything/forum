@@ -48,7 +48,7 @@ class ForumModelTest extends TestCase
         $forum = factory(App\Forum\Forums\Forum::class, 1)->create();
         $posts = factory(App\Forum\Posts\Post::class, 2)->create();
 
-        $forums = App::make(GetAllForums::class)->run();
+        $forums = \App::make(Forum::class)->overview()->get();
 
         $this->assertEquals($forums[0]->postsCount, 2);
     }
@@ -59,7 +59,7 @@ class ForumModelTest extends TestCase
         $forum = factory(App\Forum\Users\User::class, 1)->create();
         $posts = factory(App\Forum\Posts\Post::class, 2)->create();
 
-        $forums = App::make(GetAllForums::class)->run();
+        $forums = \App::make(Forum::class)->overview()->get();
 
         $this->assertEquals($forums[0]->latestPost->id, 2);
     }

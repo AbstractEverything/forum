@@ -33,6 +33,25 @@ class Reply extends Model
     ];
 
     /**
+     * Get all replies to a post
+     * @param  integer $id
+     * @return App\Forum\Replies\Reply
+     */
+    public function repliesToPost($id)
+    {
+        return static::with([
+                'user',
+                'user.postsCount',
+                'user.repliesCount',
+            ])
+            ->where('post_id', '=', $id)
+            ->orderBy('updated_at', 'asc');
+    }
+
+    // Relationships
+    // ----------------------------------------------------------------------
+
+    /**
      * Set up the user relationship
      * @return Illuminate\Database\Eloquent\Relations\BelongsTo
      */

@@ -5,6 +5,7 @@ namespace App\Forum\Posts;
 use App\Forum\Posts\PostPresenter;
 use App\Forum\Users\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Laracasts\Presenter\PresentableTrait;
 
 class Post extends Model
@@ -30,6 +31,93 @@ class Post extends Model
         'views',
         'moved',
     ];
+
+    /**
+     * Get all the pinned posts in a forum
+     * @param  integer $id
+     * @return App\Forum\Posts\Post
+     */
+    public function pinnedInForum($id)
+    {
+        return static::with([
+                'user',
+                'repliesCount',
+                'latestReply',
+                'latestReply.user',
+            ])
+            ->where('forum_id', $id)
+            ->where('pinned', true)
+            ->orderBy('updated_at', 'desc');
+    }
+
+    /**
+     * Get all the posts in a forum
+     * @param  integer $id
+     * @return App\Forum\Posts\Post
+     */
+    public function allInForum($id)
+    {
+        return static::with([
+                'user',
+                'repliesCount',
+                'latestReply',
+                'latestReply.user',
+            ])
+            ->where('forum_id', $id)
+            ->orderBy('updated_at', 'desc');
+    }
+
+    /**
+     * Get all the posts posted by a user
+     * @param  User    $user
+     * @return App\Forum\Posts\Post
+     */
+    public function allByUser(User $user)
+    {
+        return static::with([
+                'user',
+                'repliesCount',
+                'latestReply',
+                'latestReply.user',
+            ])
+            ->where('user_id', $user->id)
+            ->orderBy('updated_at', 'desc');
+    }
+
+    /**
+     * Determine if the post is closed or pinned
+     * @return boolean
+     */
+    public function hasOptions()
+    {
+        return $this->pinned || $this->closed;
+    }
+
+    /**
+     * Determine if the post is popular
+     * @return boolean
+     */
+    public function isHot()
+    {
+        return $this->repliesCount >= config('forum.hot_post');
+    }
+
+    // Scopes
+    // ----------------------------------------------------------------------
+
+    /**
+     * Get the latest posts in the forum ordered by by when they were updated
+     * @param  Illuminate\Database\Eloquent\Model $query
+     * @param  integer $id
+     * @return Illuminate\Database\Eloquent\Model
+     */
+    public function scopeLatestIn($query, $id)
+    {
+        return $query->where('forum_id', $id)->orderBy('updated_at', 'desc'); 
+    }
+
+    // Relationships
+    // ----------------------------------------------------------------------
 
     /**
      * Set up the user relationship
@@ -92,34 +180,5 @@ class Post extends Model
         $related = $this->getRelation('repliesCount');
         
         return ($related) ? (int) $related->aggregate : 0;
-    }
-
-    /**
-     * Determine if the post is closed or pinned
-     * @return boolean
-     */
-    public function hasOptions()
-    {
-        return $this->pinned || $this->closed;
-    }
-
-    /**
-     * Determine if the post is popular
-     * @return boolean
-     */
-    public function isHot()
-    {
-        return $this->repliesCount >= config('forum.hot_post');
-    }
-
-    /**
-     * Get the latest posts in the forum ordered by by when they were updated
-     * @param  Illuminate\Database\Eloquent\Model $query
-     * @param  integer $id
-     * @return Illuminate\Database\Eloquent\Model
-     */
-    public function scopeLatestIn($query, $id)
-    {
-        return $query->where('forum_id', $id)->orderBy('updated_at', 'desc'); 
     }
 }

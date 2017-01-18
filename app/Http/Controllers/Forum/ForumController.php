@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Forum;
 
+use App\Forum\Forums\CacheableForum;
 use App\Forum\Forums\Forum;
+use App\Forum\Posts\CacheablePost;
 use App\Forum\Posts\Post;
-use App\Forum\Queries\GetAllForums;
-use App\Forum\Queries\Cacheable\CacheAllForums;
-use App\Forum\Queries\GetAllPostsInForum;
-use App\Forum\Queries\GetPinnedPostsInForum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests;
 use Illuminate\Http\Request;
@@ -43,7 +41,7 @@ class ForumController extends Controller
      */
     public function index()
     {
-        $forums = (new CacheAllForums(App::make(GetAllForums::class)))->run();
+        $forums = (new CacheableForum(App::make(Forum::class)))->overview();
 
         return view('forum.index', compact('forums'));
     }
@@ -183,11 +181,8 @@ class ForumController extends Controller
             abort(404, 'Sorry that forum was not found');
         }
 
-        $posts = App::make(GetAllPostsInForum::class)->run(
-            $id,
-            config('forum.pagination.posts')
-        );
-        $pinnedPosts = App::make(GetPinnedPostsInForum::class)->run($id);
+        $posts = $this->post->allInForum($id)->paginate(config('pagination.posts'));
+        $pinnedPosts = $this->post->pinnedInForum($id);
 
         return view('forum.show', compact(
             'forum',

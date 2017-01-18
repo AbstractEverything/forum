@@ -15,9 +15,6 @@ return [
     'cache' => [
         'forums_all' => [
             'duration' => 60 * 60,
-        ],
-        'posts_all' => [
-            'duration' => 60 * 60,
         ]
     ]
 ];

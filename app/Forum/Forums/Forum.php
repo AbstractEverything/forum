@@ -5,6 +5,7 @@ namespace App\Forum\Forums;
 use App\Forum\Forums\ForumPresenter;
 use App\Forum\Posts\Post;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Laracasts\Presenter\PresentableTrait;
 
 class Forum extends Model
@@ -27,6 +28,22 @@ class Forum extends Model
         'description',
         'closed',
     ];
+
+    /**
+     * Get all the forums with relationships to display on the front page
+     * @return App\Forum\Forums\Forum
+     */
+    public function overview()
+    {
+        return static::with([
+            'postsCount',
+            'latestPost',
+            'latestPost.user',
+        ]);
+    }
+
+    // Relationships
+    // ----------------------------------------------------------------------
 
     /**
      * Set up the user relationship
